@@ -1,21 +1,23 @@
 #!/usr/bin/node
 
 const request = require('request');
-const apiUrl = process.argv[2];
-const characterId = 18; // Wedge Antilles
 
-request(apiUrl, (error, response, body) => {
+const url = process.argv[2];
+
+request(url, (error, response, body) => {
   if (error) {
     console.log(error);
   } else {
     const films = JSON.parse(body).results;
-    const filmCount = films.reduce((count, film) => {
-      const characters = film.characters;
-      if (characters.includes(`https://swapi-api.hbtn.io/api/people/${characterId}/`)) {
-        return count + 1;
+    let count = 0;
+    for (const film of films) {
+      for (const character of film.characters) {
+        if (character.includes('/18/')) {
+          count++;
+          break;
+        }
       }
-      return count;
-    }, 0);
-    console.log(filmCount);
+    }
+    console.log(count);
   }
 });
