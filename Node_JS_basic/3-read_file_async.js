@@ -1,39 +1,40 @@
 const fs = require('fs');
-const util = require('util');
-
-const readFileAsync = util.promisify(fs.readFile);
 
 function countStudents(path) {
   return new Promise((resolve, reject) => {
-    readFileAsync(path, 'utf8')
-      .then((data) => {
-        const students = data.trim().split('\n').filter((student) => student);
-        const fields = {};
-        const fieldNames = {};
+    fs.readFile(path, 'utf8', (error, data) => {
+      if (error) {
+        reject(new Error('Cannot load the database'));
+      }
 
-        students.forEach((student) => {
-          const [firstName, field] = student.split(',');
-          if (fields[field]) {
-            fields[field].push(firstName);
-          } else {
-            fields[field] = [firstName];
-            fieldNames[field] = field;
-          }
-        });
+      const lines = data.trim().split('\n');
 
-        console.log(`Number of students: ${students.length}`);
-        for (const field in fieldNames) {
-          if (Object.prototype.hasOwnProperty.call(fieldNames, field)) {
-            console.log(
-              `Number of students in ${field}: ${fields[field].length}. List: ${fields[field].join(', ')}`,
-            );
+      let csCount = 0;
+      let sweCount = 0;
+      const csList = [];
+      const sweList = [];
+
+      for (const line of lines) {
+        const fields = line.split(',');
+        const [firstName, lastName, age, field] = fields;
+
+        if (firstName && lastName && age && field) {
+          if (field === 'CS') {
+            csCount += 1;
+            csList.push(firstName);
+          } else if (field === 'SWE') {
+            sweCount += 1;
+            sweList.push(firstName);
           }
         }
-        resolve();
-      })
-      .catch(() => {
-        reject(new Error('Cannot load the database'));
-      });
+      }
+
+      console.log(`Number of students: ${csCount + sweCount}`);
+      console.log(`Number of students in CS: ${csCount}. List: ${csList.join(', ')}`);
+      console.log(`Number of students in SWE: ${sweCount}. List: ${sweList.join(', ')}`);
+
+      resolve();
+    });
   });
 }
 
