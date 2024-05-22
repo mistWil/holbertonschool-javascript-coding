@@ -1,28 +1,31 @@
 const http = require('http');
 const countStudents = require('./3-read_file_async');
 
-const app = http.createServer(async (req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
+const databasePath = 'database.csv';
+const port = 1245;
 
+const app = http.createServer(async (req, res) => {
   if (req.url === '/') {
-    res.end('Hello Holberton School!');
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Hello Holberton School!\n');
   } else if (req.url === '/students') {
-    res.write('This is the list of our students\n');
     try {
-      await countStudents(process.argv[2]);
-      res.end();
-    } catch (err) {
-      res.end('Cannot load the database');
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      const response = await countStudents(databasePath);
+      res.end(`This is the list of our students\n${response}`);
+    } catch (error) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Internal Server Error');
+      console.error(error);
     }
   } else {
-    res.statusCode = 404;
-    res.end('Not found');
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found\n');
   }
 });
 
-app.listen(1245, () => {
-  console.log('Server running at http://localhost:1245/');
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}/`);
 });
 
 module.exports = app;
